@@ -8,12 +8,19 @@ void dump(unsigned int sector)
 
 	printf("codigo de retorno: %d\n", read_sector(sector,buf) );
 
-	int i, j, offset = 8;
-	for(i=0; i<SECTOR_SIZE; i += offset)
+	int i, j, offset = 16;
+	for(i=0; i<256; i += offset)
 	{
-		printf("%x ", i);
+		printf("%08x - ", sector*SECTOR_SIZE + i);
 		for(j=0; j<offset; j++)
-			printf("%x ", buf[i + j]);
+			printf("%02x ", buf[i + j] & 0xFF);
+		printf("- ");
+		for(j=0; j<offset; j++)
+			if( buf[i + j] >= 0x20 && buf[i + j] != 0xEF)
+				printf("%c", buf[i + j]);
+			else
+				printf(".");
+
 		printf("\n");
 	}
 }
