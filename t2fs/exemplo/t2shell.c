@@ -27,7 +27,6 @@ void cmdClose(void);
 void cmdWrite(void);
 void cmdCreate(void);
 void cmdDelete(void);
-void cmdSeek(void);
 void cmdTrunc(void);
 
 void cmdLn(void);
@@ -78,8 +77,6 @@ char helpClose[] = "[hdl         -> close [hdl]";
 char helpWrite[] = "[hdl] [str]  -> write [str] bytes to file [hdl]";
 char helpCreate[]= "[file]       -> create new [file] in T2FS";
 char helpDelete[]= "[file]       -> deletes [file] from T2FS";
-char helpSeek[]  = "[hdl] [pos]  -> set CP of [hdl] file on [pos]";
-char helpTrunc[] = "[hdl] [siz]  -> truncate file [hdl] to [siz] bytes";
 char helpLn[]     = "[lnk] [file] -> create link [lnk] to [file]";
 char helpFormat[] = "[bs]         -> format virtual disk";
 
@@ -108,8 +105,6 @@ struct {
 	{ "write", helpWrite, cmdWrite }, { "wr", helpWrite, cmdWrite },
 	{ "create", helpCreate, cmdCreate }, { "cr", helpCreate, cmdCreate },
 	{ "delete", helpDelete, cmdDelete }, { "del", helpDelete, cmdDelete },
-	{ "seek", helpSeek, cmdSeek }, { "sk", helpSeek, cmdSeek },
-	{ "truncate", helpTrunc, cmdTrunc }, { "trunc", helpTrunc, cmdTrunc }, { "tk", helpTrunc, cmdTrunc },
 	
 	{ "ln", helpLn, cmdLn },
 	{ "format", helpFormat, cmdFormat },
@@ -216,47 +211,6 @@ void tst_list_dir(char *src) {
 	printf ("Ok!\n\n");
 }
 
-void tst_seek(char *src, int seek_pos) {
-	char buffer[256];
-    FILE2 hSrc;
-	int err;
-	
-	printf ("Teste do seek2()\n");
-	
-    hSrc = open2 (src);
-    if (hSrc<0) {
-        printf ("Erro: Open %s (handle=%d)\n", src, hSrc);
-        return;
-    }
-	
-    err = seek2(hSrc, seek_pos);
-    if (err<0) {
-        printf ("Error: Seek %s (handle=%d), err=%d\n", src, hSrc, err);
-		close2(hSrc);
-        return;
-    }
-	
-    err = read2(hSrc, buffer, 256);
-    if (err<0) {
-        printf ("Error: Read %s (handle=%d), err=%d\n", src, hSrc, err);
-		close2(hSrc);
-        return;
-    }
-    if (err==0) {
-        printf ("Error: Arquivo vazio %s (handle=%d)\n", src, hSrc);
-		close2(hSrc);
-        return;
-    }
-
-    dump(buffer, err);  
-	
-	if (close2(hSrc)) {
-        printf ("Erro: Close (handle=%d)\n", hSrc);
-        return;
-	}
-	printf ("Ok!\n\n");
-}
-
 void tst_create(char *src) {
     FILE2 hFile;
 	int err;
@@ -306,42 +260,6 @@ void tst_write(char *src, char *texto) {
 	
 }
 
-void tst_truncate(char *src, int size) {
-    FILE2 handle;
-	int err;
-
-	printf ("Teste do truncate2()\n");
-	
-    handle = open2(src);
-    if (handle<0) {
-        printf ("Erro: Open %s, handle=%d\n", src, handle);
-        return;
-    }
-	
-    // posiciona CP na posicao selecionada
-    err = seek2(handle, size);
-    if (err<0) {
-        printf ("Error: Seek %s, handle=%d, pos=%d, err=%d\n", src, handle, size, err);
-		close2(handle);
-        return;
-    }
-    
-    // trunca
-    err = truncate2(handle);
-    if (err<0) {
-        printf ("Error: Truncate %s, handle=%d, pos=%d, err=%d\n", src, handle, size, err);
-		close2(handle);
-        return;
-    }
-	
-	if (close2(handle)) {
-        printf ("Erro: Close (handle=%d)\n", handle);
-        return;
-	}
-	
-	printf ("Ok!\n\n");
-}
-
 void tst_delete(char *src) {
     int err;
 	
@@ -389,7 +307,6 @@ void teste(int tstNumber) {
 			tst_list_dir(".");
 			break;
 		case 5:
-			tst_seek("x.txt", 7);
 			break;
 			
 		case 6:
@@ -401,8 +318,6 @@ void teste(int tstNumber) {
 			tst_read("y.txt");		// Verificação
 			break;
 		case 8:
-			tst_truncate("y.txt", 11);
-			tst_read("y.txt");		// Verificação
 			break;
 		case 9:
 			tst_delete("y.txt");
@@ -885,56 +800,4 @@ void cmdLs(void) {
 
 
 }
-
-
-/**
-Chama a função truncate2() da biblioteca e coloca o string de retorno na tela
-*/
-void cmdTrunc(void) {
-    FILE2 handle;
-    int size;
-
-    // get first parameter => file handle
-    char *token = strtok(NULL," \t");
-    if (token==NULL) {
-        printf ("Missing parameter\n");
-        return;
-    }
-    if (sscanf(token, "%d", &handle)==0) {
-        printf ("Invalid parameter\n");
-        return;
-    }
-
-    // get second parameter => number of bytes
-    token = strtok(NULL," \t");
-    if (token==NULL) {
-        printf ("Missing parameter\n");
-        return;
-    }
-    if (sscanf(token, "%d", &size)==0) {
-        printf ("Invalid parameter\n");
-        return;
-    }
-    
-    // posiciona CP na posicao selecionada
-    int err = seek2(handle, size);
-    if (err<0) {
-        printf ("Error seek2: %d\n", err);
-        return;
-    }
-    
-    // trunca
-    err = truncate2(handle);
-    if (err<0) {
-        printf ("Error truncate2: %d\n", err);
-        return;
-    }
-
-    // show bytes read
-    printf ("file-handle %d truncated to %d bytes\n", handle, size );
-}
-
-void cmdSeek(void) {
-}
-
 

@@ -1,7 +1,11 @@
 
 /**
 */
-#include "t2fs.h"
+#include "../include/apidisk.h"
+#include "../include/bitmap2.h"
+#include "../include/t2disk.h"
+#include "../include/t2fs.h"
+#include "../include/auxiliar.h"
 
 /*-----------------------------------------------------------------------------
 Função:	Informa a identificação dos desenvolvedores do T2FS.
@@ -16,7 +20,44 @@ Função:	Formata logicamente uma partição do disco virtual t2fs_disk.dat para
 		corresponde a um múltiplo de setores dados por sectors_per_block.
 -----------------------------------------------------------------------------*/
 int format2(int partition, int sectors_per_block) {
-	return -1;
+
+	if(partition < 0 || partition > 3)
+		return -1;
+
+	WORD sector_start, sector_end;
+	// TODO: ler os setores de inicio e fim da partição
+
+	WORD block_sz = SECTOR_SIZE * sectors_per_block;
+	WORD partition_sz = (sector_end - sector_start + 1)/sectors_per_block;
+
+	WORD indode_sz = (partition_sz + 10 - 1)/10;
+	WORD bitmap_block_sz = (partition_sz + block_sz - 1)/block_sz;
+	WORD bitmap_inode_sz = (indode_sz + block_sz - 1)/block_sz;
+
+	if( 1 + indode_sz + bitmap_block_sz + bitmap_inode_sz >= partition_sz)
+		return -1;
+
+	WORD data_block_sz = partition_sz - bitmap_block_sz - indode_sz - bitmap_inode_sz - 1;
+
+	struct t2fs_superbloco sb;
+
+	sb.id[0] = 'T';
+	sb.id[1] = '2';
+	sb.id[2] = 'F';
+	sb.id[3] = 'S';
+	sb.version = 0x7E32;
+	sb.superblockSize = 1;
+	sb.freeBlocksBitmapSize = bitmap_block_sz;
+	sb.freeInodeBitmapSize = bitmap_inode_sz;
+	sb.inodeAreaSize = indode_sz;
+	sb.blockSize = sectors_per_block;
+	sb.diskSize = partition_sz;
+
+	int i;
+	sb.Checksum = 0;
+	for(i=0; i<5; ++i)
+		sb.Checksum += *((DWORD *)&sb + i);
+	sb.Checksum = ~sb.Checksum;
 }
 
 /*-----------------------------------------------------------------------------
@@ -84,7 +125,7 @@ int write2 (FILE2 handle, char *buffer, int size) {
 /*-----------------------------------------------------------------------------
 Função:	Função que abre um diretório existente no disco.
 -----------------------------------------------------------------------------*/
-DIR2 opendir2 (char *pathname) {
+int opendir2 (char *pathname) {
 	return -1;
 }
 
