@@ -16,15 +16,15 @@ typedef struct t2fs_file
 
 typedef struct t2fs_partition
 {
-	int mounted;
-	unsigned int sector_start;
-	unsigned int sector_end;
+	DWORD sector_start;
+	DWORD sector_end;
 	struct t2fs_superbloco sb;
+	int mounted;
 } PARTINFO;
 
-extern OPENFILE root_dir;
-extern OPENFILE open_files[MAX_OPEN_FILES];
-extern PARTINFO partition_atual;
+extern OPENFILE root_dir = {0};
+extern OPENFILE open_files[MAX_OPEN_FILES] = {0};
+extern PARTINFO partition_atual = {0};
 
 // leitura e escrita de setores de acordo com um tamanho do buffer e offset dentro do setor. 
 // Retorna o número de bytes escritos se conseguiu, e negativo (-1) caso contrário
@@ -50,7 +50,7 @@ int write_entry(PARTINFO *partition, int num_entry, struct t2fs_record *ent);
 // Preenche a estrutura de superbloco da partição indicada.
 int fill_superbloco (int sector_start, int sector_end, int sectors_per_block, struct t2fs_superbloco *sb);
 
-// reseta os bitmaps para o formato padrão, com o de inodes vazio exceto pelo de número 0, e o de blocos
+// reseta os bitmaps para o formato padrão, com o de inodes vazio, e o de blocos
 // vazio exceto os 1 + tamanhoDosBitmaps + 1 blocos iniciais(superbloco, bitmaps e 0-ésimo inode).
 int reset_bitmaps(PARTINFO *partition);
 
@@ -67,5 +67,8 @@ int free_inode(PARTINFO *partition, int inode);
 // procura nos ponteiros indiretos pelo bloco certo. Se der erro, retorna negativo.
 int address_conversion(PARTINFO *partition, unsigned int block, struct t2fs_inode *inode);
 
+// Aloca bloco e coloca no lugar certo no inode (ultimo possível), cuidando dos ponteiros indiretos.
+// retorna bloco se sucesso, senão valor negativo.
+int alloc_block_to_file(PARTINFO *partition, struct t2fs_inode *inode);
 
 #endif
