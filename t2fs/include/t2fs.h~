@@ -71,7 +71,7 @@ Entra:	-
 Saída:	Se a operação foi realizada com sucesso, a função retorna "0" (zero).
 		Em caso de erro, será retornado um valor diferente de zero.
 -----------------------------------------------------------------------------*/
-int unmount(void);
+int umount(void);
 
 
 /*-----------------------------------------------------------------------------

@@ -7,10 +7,16 @@
 
 int main()
 {
-	format2(0,1);
+	PARTINFO p, *pp = &p;
 
-	dump_superbloco(1);
-	dump_sector(1);
+	p.sector_start = 1281;
+	read_superbloco(1281, &(p.sb));
+
+	unmount();
+
+	printf("codigo mount(1): %d\n", mount(1));
+	printf("codigo delete2(\"aaaaa.txt\"): %d\n", delete2("aaaaa.txt"));
+	dump_block(pp,42);
 
 	return 0;
 }

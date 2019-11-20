@@ -133,7 +133,7 @@ int read_inode(PARTINFO *partition, int num_inode, struct t2fs_inode *inode)
 
 	int offset = offset_in_bytes % (blockSz_in_bytes);
 
-	if ( read_block(partition, inode_block, (BYTE *) inode, sizeof(struct t2fs_inode), offset) == sizeof(struct t2fs_inode) )
+	if ( read_block(partition, inode_block, (BYTE *) inode, sizeof(struct t2fs_inode), offset) != sizeof(struct t2fs_inode) )
 		return -1;
 
 	return 0;
@@ -200,9 +200,11 @@ int write_entry(PARTINFO *partition, int num_entry, struct t2fs_record *ent)
 	int blockSz_in_bytes = SECTOR_SIZE * partition->sb.blockSize;
 
 	int logical_block = ( num_entry*sizeof(struct t2fs_record) )/blockSz_in_bytes;
-
+	
 	int physical_block = address_conversion(partition, logical_block, &root_inode);
 	
+	printf("physical block: %d\n", physical_block);
+
 	if(physical_block == -1)
 		return -1;
 
@@ -263,14 +265,18 @@ int reset_bitmaps(PARTINFO *partition)
 
 	int bitmapInodeSz = partition->sb.freeInodeBitmapSize;
 
+	int inodeAreaSz = partition->sb.inodeAreaSize;
+
 	int i, res = 0;
-	for(i=1; i<bitmapBlockSz * blockSz_in_bytes * 8; i++)
-		if(i <= 1 + bitmapBlockSz + bitmapInodeSz)
+	for(i=0; i < partition->sb.diskSize; i++)
+		if(i < 1 + bitmapBlockSz + bitmapInodeSz + inodeAreaSz )
 			res |= setBitmap2(BITMAP_DADOS,i,1);
 		else
 			res |= setBitmap2(BITMAP_DADOS,i,0);
 
-	for(i=1; i<bitmapInodeSz * blockSz_in_bytes * 8; i++)
+	res |= setBitmap2(BITMAP_INODE,0,1);
+
+	for(i=1; i < inodeAreaSz*blockSz_in_bytes/sizeof(struct t2fs_inode); i++)
 		res |= setBitmap2(BITMAP_INODE,i,0);
 
 	if(res != 0)
@@ -433,7 +439,7 @@ int alloc_block_to_file(PARTINFO *partition, int inode_num)
 
 	if( block < 2 )
 		file_inode.dataPtr[ block ] = pointer;
-
+	else
 	if( block < 2 + blockSz_in_pointers )
 	{
 		if(block == 2)
@@ -448,7 +454,7 @@ int alloc_block_to_file(PARTINFO *partition, int inode_num)
 		if( write_block(partition, file_inode.singleIndPtr, (BYTE *)pointer, pointerSz, offset) != pointerSz )
 			return -1;
 	}
-
+	else
 	if ( block < 2 + blockSz_in_pointers + blockSz_in_pointers*blockSz_in_pointers )
 	{
 		offset = (block - 2 - blockSz_in_pointers)/blockSz_in_pointers;
