@@ -4,6 +4,7 @@
 #include "../include/t2fs.h"
 #include "../include/auxiliar.h"
 #include "../include/help.h"
+#include <stdlib.h>
 
 void dump_sector(unsigned int sector)
 {

@@ -95,7 +95,7 @@ int read_block (PARTINFO *partition, unsigned int block, unsigned char *buffer, 
 	return read_bytes;
 }
 
-int write_block (PARTINFO *partition, unsigned int block, unsigned char *buffer, int size, int offset);
+int write_block (PARTINFO *partition, unsigned int block, unsigned char *buffer, int size, int offset)
 {
 	if( partition == NULL || buffer == NULL )
 		return -1;
@@ -166,7 +166,7 @@ int read_entry(PARTINFO *partition, int num_entry, struct t2fs_record *ent)
 
 	struct t2fs_inode root_inode;
 
-	if( read_inode(partition, &root_inode) != 0 )
+	if( read_inode(partition, 0, &root_inode) != 0 )
 		return -1;
 
 	int blockSz_in_bytes = SECTOR_SIZE * partition->sb.blockSize;
@@ -300,7 +300,7 @@ int alloc_block(PARTINFO *partition)
 	return block;
 }
 
-int free_block(PARTINFO *partition, int block);
+int free_block(PARTINFO *partition, int block)
 {
 	if( partition == NULL )
 		return -1;
@@ -335,7 +335,7 @@ int alloc_inode(PARTINFO *partition)
 	return inode;
 }
 
-int free_inode(PARTINFO *partition, int inode);
+int free_inode(PARTINFO *partition, int inode)
 {
 	if( partition == NULL )
 		return -1;
@@ -415,6 +415,11 @@ int alloc_block_to_file(PARTINFO *partition, int inode_num)
 	assert(file_inode.bytesFileSize == file_inode.blocksFileSize*partition->sb.blockSize*SECTOR_SIZE);
 
 	int pointerSz = sizeof(DWORD);
+
+	int blockSz_in_bytes = SECTOR_SIZE * partition->sb.blockSize;
+
+	int blockSz_in_pointers = blockSz_in_bytes/pointerSz;
+
 	int pointer = alloc_block(partition);
 	int block = file_inode.blocksFileSize++;
 	int offset, pointer_sndInd;
