@@ -74,7 +74,7 @@ void dump_inode(PARTINFO *partition, int inode_num)
 		return;
 	}
 
-	printf("%d blocos:\n", inode.blockFileSize);
+	printf("%d blocos:\n", inode.blocksFileSize);
 	for( logical_block = 0; logical_block < inode.blocksFileSize; logical_block++)
 	{
 		printf("%d ", address_conversion(partition, logical_block, &inode) );
