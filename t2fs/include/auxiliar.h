@@ -22,9 +22,9 @@ typedef struct t2fs_partition
 	int mounted;
 } PARTINFO;
 
-extern OPENFILE root_dir = {0};
-extern OPENFILE open_files[MAX_OPEN_FILES] = {0};
-extern PARTINFO partition_atual = {0};
+extern OPENFILE root_dir;
+extern OPENFILE open_files[MAX_OPEN_FILES];
+extern PARTINFO partition_atual;
 
 // leitura e escrita de setores de acordo com um tamanho do buffer e offset dentro do setor. 
 // Retorna o número de bytes escritos se conseguiu, e negativo (-1) caso contrário
