@@ -5,6 +5,7 @@
 #include "../include/auxiliar.h"
 #include "../include/help.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 void dump_sector(unsigned int sector)
 {
@@ -101,6 +102,6 @@ void dump_superbloco(int sector_start)
 void dump_partition(PARTINFO *partition)
 {
 	printf("setor de inicio = %d\nsetor de fim = %d\n", partition->sector_start, partition->sector_end);
-	printf("superbloco:\n")
+	printf("superbloco:\n");
 	dump_superbloco(partition->sector_start);
 }
