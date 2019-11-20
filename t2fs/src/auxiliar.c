@@ -470,7 +470,7 @@ int alloc_block_to_file(PARTINFO *partition, int inode_num)
 				return -1;
 	}
 
-	if( write_inode(partition, num_inode, &file_inode) != 0)
+	if( write_inode(partition, inode_num, &file_inode) != 0)
 		return -1;
 
 	return 0;
