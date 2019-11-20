@@ -139,7 +139,7 @@ int read_inode(PARTINFO *partition, int num_inode, struct t2fs_inode *inode)
 	return 0;
 }
 
-int write_inode(PARTINFO *partition, int num_inode, struct t2fs_inode *inode);
+int write_inode(PARTINFO *partition, int num_inode, struct t2fs_inode *inode)
 {
 	if( partition == NULL || inode == NULL )
 		return -1;
@@ -194,7 +194,7 @@ int write_entry(PARTINFO *partition, int num_entry, struct t2fs_record *ent)
 
 	struct t2fs_inode root_inode;
 
-	if( read_inode(partition, &root_inode) != 0 )
+	if( read_inode(partition, 0, &root_inode) != 0 )
 		return -1;
 
 	int blockSz_in_bytes = SECTOR_SIZE * partition->sb.blockSize;
@@ -445,7 +445,7 @@ int alloc_block_to_file(PARTINFO *partition, int inode_num)
 		}
 
 		offset = (block - 2)*pointerSz;
-		if( write_block(partition, inode->singleIndPtr, (BYTE *)pointer, pointerSz, offset) != pointerSz )
+		if( write_block(partition, file_inode->singleIndPtr, (BYTE *)pointer, pointerSz, offset) != pointerSz )
 			return -1;
 	}
 
@@ -454,7 +454,7 @@ int alloc_block_to_file(PARTINFO *partition, int inode_num)
 		offset = (block - 2 - blockSz_in_pointers)/blockSz_in_pointers;
 		if( (block - 2)%blockSz_in_pointers == 0 )
 		{
-			if( write_block(partition, inode->doubleIndPtr, (BYTE *)pointer, pointerSz, offset) != pointerSz )
+			if( write_block(partition, file_inode->doubleIndPtr, (BYTE *)pointer, pointerSz, offset) != pointerSz )
 				return -1;
 			pointer_sndInd = pointer;
 			pointer = alloc_block(partition);
@@ -462,7 +462,7 @@ int alloc_block_to_file(PARTINFO *partition, int inode_num)
 				return -1;
 		}
 		else
-			if( read_block(partition, inode->doubleIndPtr, (BYTE *)pointer_sndInd, pointerSz, offset) != pointerSz )
+			if( read_block(partition, file_inode->doubleIndPtr, (BYTE *)pointer_sndInd, pointerSz, offset) != pointerSz )
 				return -1;
 
 		offset = (block - 2 - blockSz_in_pointers)%blockSz_in_pointers;
