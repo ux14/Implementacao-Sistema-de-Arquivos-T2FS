@@ -8,10 +8,10 @@
 #include "t2fs.h"
 
 void dump_sector(unsigned int sector);
-void dump_block(PARTITION *partition, int block);
-void dump_file(PARTITION *partition, int inode_num);
-void dump_inode(PARTITION *partition, int inode_num);
+void dump_block(PARTINFO *partition, int block);
+void dump_file(PARTINFO *partition, int inode_num);
+void dump_inode(PARTINFO *partition, int inode_num);
 void dump_superbloco(int sector_start);
-void dump_partition(PARTITION *partition);
+void dump_partition(PARTINFO *partition);
 
 #endif

@@ -29,7 +29,7 @@ void dump_sector(unsigned int sector)
 	}
 }
 
-void dump_block(PARTITION *partition, int block)
+void dump_block(PARTINFO *partition, int block)
 {
 	if( partition != NULL )
 	{
@@ -46,7 +46,7 @@ void dump_block(PARTITION *partition, int block)
 	}
 }
 
-void dump_file(PARTITION *partition, int inode_num)
+void dump_file(PARTINFO *partition, int inode_num)
 {
 	int logical_block;
 	struct t2fs_inode inode;
@@ -63,7 +63,7 @@ void dump_file(PARTITION *partition, int inode_num)
 }
 
 
-void dump_inode(PARTITION *partition, int inode_num)
+void dump_inode(PARTINFO *partition, int inode_num)
 {
 	int logical_block;
 	struct t2fs_inode inode;
@@ -98,7 +98,7 @@ void dump_superbloco(int sector_start)
 	printf("Checksum = %d\n", sb.Checksum);
 }
 
-void dump_partition(PARTITION *partition)
+void dump_partition(PARTINFO *partition)
 {
 	printf("setor de inicio = %d\nsetor de fim = %d\n", partition->sector_start, partition->sector_end);
 	printf("superbloco:\n")
