@@ -3,6 +3,7 @@
 #include "../include/t2disk.h"
 #include "../include/t2fs.h"
 #include "../include/auxiliar.h"
+#include <assert.h>
 
 OPENFILE root_dir;
 OPENFILE open_files[MAX_OPEN_FILES];
@@ -366,7 +367,7 @@ int free_inode(PARTINFO *partition, int inode);
 int address_conversion(PARTINFO *partition, unsigned int block, struct t2fs_inode *inode)
 {
 
-	if( partition == NULL || inode == NULL )
+	if( partition == NULL || inode == NULL || block < 0 )
 		return -1;
 
 	int pointerSz = sizeof(DWORD);
@@ -399,5 +400,72 @@ int address_conversion(PARTINFO *partition, unsigned int block, struct t2fs_inod
 	}
 
 	return -1;
+}
 
+int alloc_block_to_file(PARTINFO *partition, int inode_num)
+{
+	if(partition == NULL)
+		return -1;
+
+	struct t2fs_inode file_inode;
+
+	if( read_inode(partition, inode_num, &file_inode) != 0)
+		return -1;
+
+	assert(file_inode.bytesFileSize == file_inode.blocksFileSize*partition->sb.blockSize*SECTOR_SIZE);
+
+	int pointerSz = sizeof(DWORD);
+	int pointer = alloc_block(partition);
+	int block = file_inode.blocksFileSize++;
+	int offset, pointer_sndInd;
+
+	// se igual a zero faltou espaco
+	if( pointer <= 0 )
+		return -1;
+
+	assert(block >= 0);
+
+	if( block < 2 )
+		file_inode.dataPtr[ block ] = pointer;
+
+	if( block < 2 + blockSz_in_pointers )
+	{
+		if(block == 2)
+		{
+			file_inode.singleIndPtr = pointer;
+			pointer = alloc_block(partition);
+			if( pointer <= 0 )
+				return -1;
+		}
+
+		offset = (block - 2)*pointerSz;
+		if( write_block(partition, inode->singleIndPtr, (BYTE *)pointer, pointerSz, offset) != pointerSz )
+			return -1;
+	}
+
+	if ( block < 2 + blockSz_in_pointers + blockSz_in_pointers*blockSz_in_pointers )
+	{
+		offset = (block - 2 - blockSz_in_pointers)/blockSz_in_pointers;
+		if( (block - 2)%blockSz_in_pointers == 0 )
+		{
+			if( write_block(partition, inode->doubleIndPtr, (BYTE *)pointer, pointerSz, offset) != pointerSz )
+				return -1;
+			pointer_sndInd = pointer;
+			pointer = alloc_block(partition);
+			if( pointer <= 0 )
+				return -1;
+		}
+		else
+			if( read_block(partition, inode->doubleIndPtr, (BYTE *)pointer_sndInd, pointerSz, offset) != pointerSz )
+				return -1;
+
+		offset = (block - 2 - blockSz_in_pointers)%blockSz_in_pointers;
+		if( write_block(partition, pointer_sndInd, (BYTE *)pointer, pointerSz, offset) != pointerSz )
+				return -1;
+	}
+
+	if( write_inode(partition, num_inode, &file_inode) != 0)
+		return -1;
+
+	return 0;
 }

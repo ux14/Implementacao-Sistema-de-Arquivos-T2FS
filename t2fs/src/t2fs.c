@@ -53,6 +53,9 @@ Função:	Monta a partição indicada por "partition" no diretório raiz
 -----------------------------------------------------------------------------*/
 int mount(int partition) {
 	
+	if(partition_atual.mounted)
+		return -1;
+
 	if(partition < 0 || partition > 3)
 		return -1;
 
@@ -99,77 +102,61 @@ FILE2 create2 (char *filename) {
 
 	int ret, handle;
 
-	ret = delete2(filename);
-	if( ret != -1 )
+	if( delete2(filename) != 0 )
 		return -1;
 
-	int ret;
 	struct t2fs_inode root_inode;
 	struct t2fs_inode file_inode;
+	struct t2fs_record file_entry;
+	int file_inode_num;
+
+	if( ( file_inode_num = alloc_inode(&partition_atual)) == -1)
+		return -1;
+
 	file_inode.blocksFileSize = 0;
 	file_inode.bytesFileSize = 0;
-	file_inode.RefCounter = 0;
+	file_inode.RefCounter = 1;
 
-	if( read_inode(&partition_atual, 0, &root_inode ) != 0 )
-		return -1;
+	memset(file_entry.name,'\0', sizeof(file_entry.name));
+	strncpy(file_entry.name, filename, sizeof(file_entry.name) - 1);
+	file_entry.TypeVal = TYPEVAL_REGULAR;
+	file_entry.inodeNumber = file_inode_num;
 
 	int num_entry;
 	struct t2fs_record entry;
+	if( read_inode(&partition_atual, 0, &root_inode ) != 0 )
+		return -1;
 
 	for(num_entry=0; num_entry*sizeof(struct t2fs_record) < root_inode.bytesFileSize; num_entry++)
 	{
-		ret = read_entry(&partition_atual, num_entry, &entry);
-		if( ret != 0 )
+		if( read_entry(&partition_atual, num_entry, &entry) != 0 )
 			return -1;
 
 		if( entry.TypeVal == TYPEVAL_INVALIDO )
 		{
-			memset(entry.name,'\0', sizeof(entry.name));
-			strncpy(entry.name, filename, sizeof(entry.name) - 1);
-			entry.TypeVal = TYPEVAL_REGULAR;
-
-			entry.inodeNumber = alloc_inode(&partition_atual);
-			if(entry.inodeNumber == -1)
+			if( write_entry(&partition_atual, num_entry, &file_entry) != 0 )
 				return -1;
 
-			ret = write_entry(&partition_atual, num_entry, &entry);
-			if( ret != 0 )
-			{
-				free_inode(&partition_atual, entry.inodeNumber);
+			if( write_inode(&partition_atual, file_inode_num, &file_inode) != 0 )
 				return -1;
-			}
-
-			ret = write_inode(&partition_atual, entry.inodeNumber, &file_inode);
-			if( ret != 0 )
-			{
-				free_inode(&partition_atual, entry.inodeNumber);
-				return -1;
-			}
 
 			break;
 		}
 	}
 
-	if(num_entry*sizeof(struct t2fs_record) < root_inode.bytesFileSize)
-		return open2(filename);
-
-	// socorro
-	memset(entry.name,'\0', sizeof(entry.name));
-	strncpy(entry.name, filename, sizeof(entry.name) - 1);
-	entry.TypeVal = TYPEVAL_REGULAR;
-	entry.inodeNumber = alloc_inode(&partition_atual);
+	if(num_entry*sizeof(struct t2fs_record) >= root_inode.bytesFileSize)
+	{
+		if( root_inode.bytesFileSize%(partition_atual.sb.blockSize*SECTOR_SIZE) == 0)
+			if( alloc_block_to_file(&partition_atual, 0, &root_inode) < 0 )
+				return -1;
 	
-	if(entry.inodeNumber == -1)
-		return -1;
-
-	if( (root_inode.bytesFileSize + 1)%(partition_atual.sb.blockSize*SECTOR_SIZE) == 0)
-		if( alloc_block_to_file(&partition_atual, &root_inode) < 0 )
+		root_inode.bytesFileSize += sizeof(struct t2fs_record);
+		if( write_inode(&partition_atual, 0) != 0)
 			return -1;
-	
-	root_inode.bytesFileSize += sizeof(struct t2fs_record);
-	write_inode(&partition_atual, 0, &root_inode);
-	write_entry(&partition_atual, num_entry, &entry);
 
+		if( write_entry(&partition_atual, num_entry, &file_entry) != 0)
+			return -1;
+	}
 	return open2(filename);
 
 }
@@ -182,35 +169,46 @@ int delete2 (char *filename) {
 	if (!partition_atual.mounted)
 		return -1;
 
-	int ret;
 	struct t2fs_inode root_inode;
 	struct t2fs_inode file_inode;
 
 	if( read_inode(&partition_atual, 0, &root_inode ) != 0 )
 		return -1;
 
-	int num_entry;
+	int num_entry, i;
 	struct t2fs_record entry;
 
 	for(num_entry=0; num_entry*sizeof(struct t2fs_record) < root_inode.bytesFileSize; num_entry++)
 	{
-		ret = read_entry(&partition_atual, num_entry, &entry);
-		if( ret != 0 )
+		if( read_entry(&partition_atual, num_entry, &entry) != 0 )
 			return -1;
 
 		if( entry.TypeVal == TYPEVAL_REGULAR )
 		{
 			if( strcmp(filename, entry.name) == 0 )
 			{
-				ret = free_inode(entry.inodeNumber);
-				if( ret != 0)
+				if( read_inode(&partition_atual, entry.inodeNumber, &file_inode) != 0)
 					return -1;
 
-				entry.TypeVal = TYPEVAL_INVALIDO;
+				if( --file_inode.RefCounter > 0 )
+				{
+					if( write_inode(&partition_atual, entry.inodeNumber, &file_inode) != 0)
+						return -1;
+				}
+				else
+				{
+					if( free_inode(entry.inodeNumber) != 0)
+						return -1;
 
-				ret = write_entry(&partition_atual, num_entry, &entry);
-				if( ret != 0 )
-					return -1;
+					entry.TypeVal = TYPEVAL_INVALIDO;
+
+					if( write_entry(&partition_atual, num_entry, &entry) != 0 )
+						return -1;
+
+					for(i=0;i<MAX_OPEN_FILES;i++)
+						if( open_files[i].inode_num == entry.inodeNumber )
+							open_files[i].valid = 0;
+				}
 
 				break;
 			}
@@ -247,20 +245,17 @@ FILE2 open2 (char *filename) {
 
 	for(num_entry=0; num_entry*sizeof(struct t2fs_record) < root_inode.bytesFileSize; num_entry++)
 	{
-		ret = read_entry(&partition_atual, num_entry, &entry);
-		if( ret != 0 )
+		if( read_entry(&partition_atual, num_entry, &entry) != 0 )
 			return -1;
 
 		if( entry.TypeVal == TYPEVAL_REGULAR )
 		{
 			if( strcmp(filename, entry.name) == 0 )
 			{
-				ret = read_inode(&partition_atual, entry.inodeNumber, &open_files[handle].inode);
-				if( ret != 0 )
-					return -1;
 			
 				open_files[handle].valid = 1;
 				open_files[handle].current_pointer = 0;
+				open_files[handle].inode_num = enrty.inodeNumber;
 
 				return handle;
 			}

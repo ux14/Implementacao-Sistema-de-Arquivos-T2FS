@@ -11,7 +11,7 @@ typedef struct t2fs_file
 {
 	int valid;
 	unsigned int current_pointer;
-	struct t2fs_inode inode;
+	int inode_num;
 } OPENFILE;
 
 typedef struct t2fs_partition
@@ -69,6 +69,6 @@ int address_conversion(PARTINFO *partition, unsigned int block, struct t2fs_inod
 
 // Aloca bloco e coloca no lugar certo no inode (ultimo possível), cuidando dos ponteiros indiretos.
 // retorna bloco se sucesso, senão valor negativo.
-int alloc_block_to_file(PARTINFO *partition, struct t2fs_inode *inode);
+int alloc_block_to_file(PARTINFO *partition, int inode_num);
 
 #endif
