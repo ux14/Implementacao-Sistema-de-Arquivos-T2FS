@@ -445,7 +445,7 @@ int alloc_block_to_file(PARTINFO *partition, int inode_num)
 		}
 
 		offset = (block - 2)*pointerSz;
-		if( write_block(partition, file_inode->singleIndPtr, (BYTE *)pointer, pointerSz, offset) != pointerSz )
+		if( write_block(partition, file_inode.singleIndPtr, (BYTE *)pointer, pointerSz, offset) != pointerSz )
 			return -1;
 	}
 
@@ -454,7 +454,7 @@ int alloc_block_to_file(PARTINFO *partition, int inode_num)
 		offset = (block - 2 - blockSz_in_pointers)/blockSz_in_pointers;
 		if( (block - 2)%blockSz_in_pointers == 0 )
 		{
-			if( write_block(partition, file_inode->doubleIndPtr, (BYTE *)pointer, pointerSz, offset) != pointerSz )
+			if( write_block(partition, file_inode.doubleIndPtr, (BYTE *)pointer, pointerSz, offset) != pointerSz )
 				return -1;
 			pointer_sndInd = pointer;
 			pointer = alloc_block(partition);
@@ -462,7 +462,7 @@ int alloc_block_to_file(PARTINFO *partition, int inode_num)
 				return -1;
 		}
 		else
-			if( read_block(partition, file_inode->doubleIndPtr, (BYTE *)pointer_sndInd, pointerSz, offset) != pointerSz )
+			if( read_block(partition, file_inode.doubleIndPtr, (BYTE *)pointer_sndInd, pointerSz, offset) != pointerSz )
 				return -1;
 
 		offset = (block - 2 - blockSz_in_pointers)%blockSz_in_pointers;
