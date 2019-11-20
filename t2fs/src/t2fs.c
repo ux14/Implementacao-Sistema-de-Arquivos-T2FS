@@ -7,6 +7,7 @@
 #include "../include/t2fs.h"
 #include "../include/auxiliar.h"
 #include <string.h>
+#include <stdlib.h>
 
 /*-----------------------------------------------------------------------------
 Função:	Informa a identificação dos desenvolvedores do T2FS.

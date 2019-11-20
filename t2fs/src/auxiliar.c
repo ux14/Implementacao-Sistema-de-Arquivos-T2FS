@@ -4,6 +4,7 @@
 #include "../include/t2fs.h"
 #include "../include/auxiliar.h"
 #include <assert.h>
+#include <stdlib.h>
 
 OPENFILE root_dir;
 OPENFILE open_files[MAX_OPEN_FILES];
