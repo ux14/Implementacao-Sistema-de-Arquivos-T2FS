@@ -18,15 +18,11 @@ TST_DIR=./teste
 all: $(BIN_DIR)/t2fs.o $(BIN_DIR)/help.o $(BIN_DIR)/teste.o $(BIN_DIR)/auxiliar.o
 	$(CC) $(BIN_DIR)/*.o $(LIB_DIR)/*.o -o tst
 
-$(BIN_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) -c $< -Wall
-	mv $(@F) $(BIN_DIR)
-
 $(BIN_DIR)/%.o: $(TST_DIR)/%.c
 	$(CC) -c $< -Wall
 	mv $(@F) $(BIN_DIR)
 
 clean:
-	rm -rf $(LIB_DIR)/*.a $(BIN_DIR)/*.o $(SRC_DIR)/*~ $(TST_DIR)/*~ $(INC_DIR)/*~ *~
+	rm -rf $(LIB_DIR)/*.a $(BIN_DIR)/*.o $(SRC_DIR)/*~ $(INC_DIR)/*~ *~
 
 

@@ -325,6 +325,9 @@ int opendir2 (void) {
 	if (!partition_atual.mounted)
 		return -1;
 
+	if( read_inode(&partition_atual, 0, &(root_dir.inode) ) != 0 )
+		return -1;
+
 	root_dir.current_pointer = 0;
 	root_dir.valid = 1;
 

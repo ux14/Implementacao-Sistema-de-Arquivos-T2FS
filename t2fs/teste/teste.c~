@@ -9,7 +9,6 @@ int main()
 {
 	format2(0,1);
 
-	dump_superbloco(1);
 	dump_sector(1);
 
 	return 0;

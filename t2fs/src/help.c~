@@ -89,7 +89,7 @@ void dump_superbloco(int sector_start)
 
 	printf("codigo de retorno:%d\n", read_superbloco(sector_start, &sb));
 	printf("id = %c%c%c%c\n", sb.id[0], sb.id[1], sb.id[2], sb.id[3]);
-	printf("versao = %x\n", sb.version & 0xFFFF);
+	printf("versao = %x", sb.version & 0xFFFF);
 	printf("Blocos ocupados pelo superbloco = %d\n", sb.superblockSize);
 	printf("Blocos do Bitmap de blocos = %d\n", sb.freeBlocksBitmapSize);
 	printf("Blocos do Bitmap de inodes = %d\n", sb.freeInodeBitmapSize);
