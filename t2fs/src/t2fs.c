@@ -330,11 +330,11 @@ int read2 (FILE2 handle, char *buffer, int size) {
 	if (pointer == -1)
 		return -1;
 	bytes_lidos = read_sector2(partition_atual.sector_start, &buffer, size, pointer);
-	if(bytes_lidos != size)
-		return -1;
 	open.files[handle].current_pointer = pointer + bytes_lidos;
-	
-	return 0;
+	if(bytes_lidos <= size && bytes_lidos >= 0)
+		return bytes_lidos;
+	else	
+		return -1;
 }
 
 /*-----------------------------------------------------------------------------
