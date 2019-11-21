@@ -404,7 +404,53 @@ int sln2 (char *linkname, char *filename) {
 	
 	if (!partition_atual.mounted)
 		return -1;
+	
+	struct t2fs_inode root_inode;
+	struct t2fs_inode file_inode;
+	struct t2fs_record file_entry;
+	int file_inode_num;
 
+	if( (file_inode_num = alloc_inode(&partition_atual)) == -1)
+		return -1;
+	
+	// Específico para softlinks
+	file_inode.blocksFileSize = 1;
+	file_inode.bytesFileSize = sizeof(filename);
+	
+	file_inode.RefCounter = 1;
+	
+	memset(file_entry.name,'\0', sizeof(file_entry.name));
+	strncpy(file_entry.name, linkname, sizeof(file_entry.name) - 1);
+	file_entry.TypeVal = TYPEVAL_LINK; // Específico para links
+	file_entry.inodeNumber = file_inode_num;
+	
+	int num_entry;
+	struct t2fs_record entry;
+	
+	// Inode do diretório recebido a partir da partição atual
+	if( read_inode(&partition_atual, 0, &root_inode ) != 0 )
+		return -1;
+
+	// Para cada entrada no diretório raíz, verificar se uma delas é inválida para escrever em cima e interromper a busca
+	for(num_entry=0; num_entry*sizeof(struct t2fs_record) < root_inode.bytesFileSize; num_entry++)
+	{
+		if( read_entry(&partition_atual, num_entry, &entry) != 0 )
+			return -1;
+
+		if( entry.TypeVal == TYPEVAL_INVALIDO )
+		{
+			if( write_entry(&partition_atual, num_entry, &file_entry) != 0 )
+				return -1;
+
+			if( write_inode(&partition_atual, file_inode_num, &file_inode) != 0 )
+				return -1;
+
+			break;
+		}
+	}
+	
+	// Não terminei ainda :cc 
+	
 	return -1;
 }
 
