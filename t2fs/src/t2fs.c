@@ -14,7 +14,8 @@
 Função:	Informa a identificação dos desenvolvedores do T2FS.
 -----------------------------------------------------------------------------*/
 int identify2 (char *name, int size) {
-	return -1;
+	strncpy (name, "Augusto Dalcin Peiter - 287685\nErik Bardini da Rosa - 303693\nLeonardo Holtz de Oliveira - 287702", size);
+	return 0;
 }
 
 /*-----------------------------------------------------------------------------
