@@ -320,8 +320,21 @@ int read2 (FILE2 handle, char *buffer, int size) {
 
 	if( !open_files[handle].valid )
 		return -1;
+	
+	struct t2fs_inode file_inode;
+   	int pointer, bytes_lidos;
 
-	return -1;
+	if( read_inode(&partition_atual, open_files[handle].inode_num, &file_inode) != 0)
+		return -1;
+	pointer = address_conversion(&partition_atual, file_inode.blocksFileSize, &file_inode);
+	if (pointer == -1)
+		return -1;
+	bytes_lidos = read_sector2(partition_atual.sector_start, &buffer, size, pointer);
+	if(bytes_lidos != size)
+		return -1;
+	open.files[handle].current_pointer = pointer + bytes_lidos;
+	
+	return 0;
 }
 
 /*-----------------------------------------------------------------------------
