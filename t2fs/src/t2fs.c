@@ -212,7 +212,7 @@ int delete2 (char *filename) {
 						return -1;
 
 					entry.TypeVal = TYPEVAL_INVALIDO;
-\
+					
 					if( write_entry(&partition_atual, num_entry, &entry) != 0 )
 						return -1;
 
