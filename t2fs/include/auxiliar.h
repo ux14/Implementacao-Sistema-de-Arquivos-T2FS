@@ -6,7 +6,7 @@
 #include "t2disk.h"
 #include "t2fs.h"
 
-#define MAX_OPEN_FILES 256
+#define MAX_OPEN_FILES 10
 typedef struct t2fs_file
 {
 	int valid;
