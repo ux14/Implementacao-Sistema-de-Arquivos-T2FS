@@ -326,8 +326,7 @@ int read2 (FILE2 handle, char *buffer, int size) {
 
 	if( read_inode(&partition_atual, open_files[handle].inode_num, &file_inode) != 0)
 		return -1;
-	pointer = address_conversion(&partition_atual, file_inode.blocksFileSize, &file_inode);
-	if (pointer == -1)
+	if(pointer = address_conversion(&partition_atual, file_inode.blocksFileSize, &file_inode) == -1)
 		return -1;
 	bytes_lidos = read_sector2(partition_atual.sector_start, &buffer, size, pointer);
 	open.files[handle].current_pointer = pointer + bytes_lidos;
@@ -461,24 +460,24 @@ int hln2(char *linkname, char *filename) {
 	
 	if (!partition_atual.mounted)
 		return -1;
-	FILE2 *old_handle, new_handle;
+	FILE2 *old_handle, *new_handle;
 	char *buffer;
-	if (handle = open2(&filename) == -1)
+	if (old_handle = open2(&filename) == -1)
 		return -1;
 	
 	struct t2fs_inode file_inode;
 	
 	if(read_inode(&partition_atual, open_files[old_handle].inode_num, &file_inode) != 0)
 		return -1;
-	file_inode.RefCounter ++;
-	
 	if(read2(old_handle, &buffer, file_inode.bytesFileSize) < 0)
 		return -1;
 	if(new_handle = create2(&linkname) == -1)
 		return -1;
+	if(write2(new_handle, &buffer, file_inode.bytesFileSize) != file_inode.bytesFileSize)
+		return -1;
+	file_inode.RefCounter ++;
 	
-	
-	return -1;
+	return 0;
 }
 
 
