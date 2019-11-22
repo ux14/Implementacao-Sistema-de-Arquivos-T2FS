@@ -329,7 +329,7 @@ int read2 (FILE2 handle, char *buffer, int size) {
 	if(pointer = address_conversion(&partition_atual, file_inode.blocksFileSize, &file_inode) == -1)
 		return -1;
 	bytes_lidos = read_sector2(partition_atual.sector_start, &buffer, size, pointer);
-	open.files[handle].current_pointer = pointer + bytes_lidos;
+	open_files[handle].current_pointer = pointer + bytes_lidos;
 	if(bytes_lidos <= size && bytes_lidos >= 0)
 		return bytes_lidos;
 	else	
