@@ -116,7 +116,7 @@ int main()
 		printf("Escrita realizada com sucesso\n");
 	
 	if(close2(teste1) != -1)
-		printf("Arquivo teste1 fechado");
+		printf("Arquivo teste1 fechado\n");
 	
 	// Teste 2
 	printf("Escrevendo no arquivo teste2 algo que cheguen o ponteiro de indirecao dupla\n");
@@ -133,7 +133,7 @@ int main()
 		printf("Houve um erro na escrita\n");
 	
 	if(close2(teste2) != -1)
-		printf("Arquivo teste2 fechado");
+		printf("Arquivo teste2 fechado\n");
 	
 	// Teste de leitura dos arquivos
 	printf("\n\nComeco dos testes de leitura dos arquivos:\n");
@@ -148,6 +148,8 @@ int main()
 		printf("Leitura realizada com sucesso\n");
 		printf("Resultado: %s", buffer_leitura);
 	}
+	if(close2(teste1) != -1)
+		printf("Arquivo teste1 fechado\n");
 	
 	// Teste 2
 	printf("\nLendo do arquivo teste2:\n");
@@ -163,6 +165,25 @@ int main()
 		printf("Leitura realizada com sucesso\n");
 		printf("Resultado: %s", bytes2);
 	}
+	if(close2(teste2) != -1)
+		printf("Arquivo teste2 fechado\n");
+	
+	// Criação de Links
+	printf("\nTestes para links\n");
+	// Softlinks:
+	printf("\nCriando link para teste1\n");
+	if(sln2("link_teste1", "teste1.txt") != -1)
+		printf("Link para teste1 criado com sucesso");
+	
+	teste1 = open2("link_teste1");
+	if(teste1 != -1)
+		printf("Arquivo teste1 aberto pelo link\n");
+	if(read2(teste1, buffer_leitura, sizeof(buffer_leitura)) != -1)
+	{
+		printf("Leitura realizada com sucesso\n");
+		printf("Resultado: %s", buffer_leitura);
+	}
+	
 	
 	return 0;
 }
