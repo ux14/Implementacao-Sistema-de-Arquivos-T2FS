@@ -467,9 +467,16 @@ int sln2 (char *linkname, char *filename) {
 			return -1;
 	}
 	
-	new_block = alloc_block(&partition_atual);
+	if((new_block = alloc_block(&partition_atual)) == -1)
+		return -1;
 	
-	write_block(&partition_atual, new_block, filename, sizeof(filename), 0);
+	int writen_bytes;
+	
+	writen_bytes = write_block(&partition_atual, new_block, filename, sizeof(filename), 0);
+	
+	// Se os bytes escritos nao forem do mesmo tamanho do arquivo a ser referenciado, então o link nao funcionará
+	if(writen_bytes == -1 || writen_bytes != sizeof(filename))
+		return -1
 	
 	// Terminei?
 	
