@@ -408,6 +408,7 @@ int sln2 (char *linkname, char *filename) {
 	struct t2fs_inode file_inode;
 	struct t2fs_record file_entry;
 	int file_inode_num;
+	int new_block;
 
 	if( (file_inode_num = alloc_inode(&partition_atual)) == -1)
 		return -1;
