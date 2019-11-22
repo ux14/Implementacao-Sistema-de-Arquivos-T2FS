@@ -448,9 +448,31 @@ int sln2 (char *linkname, char *filename) {
 		}
 	}
 	
-	// Não terminei ainda :cc 
+	if(num_entry*sizeof(struct t2fs_record) >= root_inode.bytesFileSize)
+	{
+		if( root_inode.bytesFileSize%(partition_atual.sb.blockSize*SECTOR_SIZE) == 0)
+			if( alloc_block_to_file(&partition_atual, 0) < 0 )
+				return -1;
+
+		if( read_inode(&partition_atual, 0, &root_inode) != 0)
+			return -1;
+
+		root_inode.bytesFileSize += sizeof(struct t2fs_record);
+		
+		if( write_inode(&partition_atual, 0, &root_inode) != 0)
+			return -1;
+
+		if( write_entry(&partition_atual, num_entry, &file_entry) != 0)
+			return -1;
+	}
 	
-	return -1;
+	new_block = alloc_block(&partition_atual);
+	
+	write_block(&partition_atual, new_block, filename, sizeof(filename), 0);
+	
+	// Terminei?
+	
+	return 0; 
 }
 
 /*-----------------------------------------------------------------------------
