@@ -483,7 +483,7 @@ int hln2(char *linkname, char *filename) {
 	
 	if (!partition_atual.mounted)
 		return -1;
-	FILE2 *old_handle, *new_handle;
+	FILE2 old_handle, new_handle;
 	char *buffer;
 	if (old_handle = open2(&filename) == -1)
 		return -1;
